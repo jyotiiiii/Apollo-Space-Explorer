@@ -76,7 +76,6 @@ class UserAPI extends DataSource {
       : [];
   }
 
-  // isBookedOnLaunch({ launchId }): Determines whether the logged-in user has booked a trip on a particular launch.
   async isBookedOnLaunch({ launchId }) {
     if (!this.context || !this.context.user) return false;
     const userId = this.context.user.id;

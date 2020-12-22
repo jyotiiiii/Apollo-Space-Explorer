@@ -3,7 +3,7 @@ require("dotenv").config();
 const { ApolloServer } = require("apollo-server");
 const typeDefs = require("./schema");
 // import and call the createStore function to set up our SQLite database
-const { createStore } = requires("./utils");
+const { createStore } = require("./utils");
 const resolvers = require("./resolvers");
 
 const LaunchAPI = require("./datasources/launch");
@@ -18,16 +18,15 @@ const server = new ApolloServer({
   //   By providing your resolver map to Apollo Server like so, it knows how to call resolver functions as needed to fulfill incoming queries.
   resolvers,
   dataSources: () => ({
-    LaunchAPI: new LaunchAPI(),
+    launchAPI: new LaunchAPI(),
     // pass the database to the UserAPI constructor.
-    UserAPI: new UserAPI({ store }),
+    userAPI: new UserAPI({ store }),
   }),
 });
 
-server.listen().then(() => {
+server.listen().then(({ url }) => {
   console.log(`
-    Server is running!
-    Listening on port 4000
+    🚀 Server ready at ${url}
     Explore at https://studio.apollographql.com/dev
     `);
 });
