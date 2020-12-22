@@ -1,5 +1,5 @@
-const { DataSource } = require('apollo-datasource');
-const isEmail = require('isemail');
+const { DataSource } = require("apollo-datasource");
+const isEmail = require("isemail");
 
 class UserAPI extends DataSource {
   constructor({ store }) {
@@ -12,6 +12,8 @@ class UserAPI extends DataSource {
    * This function gets called with the datasource config including things
    * like caches and context. We'll assign this.context to the request context
    * here, so we can know about the user making requests
+   *
+   * this.context: A graph API's context is an object that's shared across every resolver in a GraphQL request.
    */
   initialize(config) {
     this.context = config.context;
@@ -22,6 +24,7 @@ class UserAPI extends DataSource {
    * have to be. If the user is already on the context, it will use that user
    * instead
    */
+  // findOrCreateUser({ email }): Finds or creates a user with a given email in the database.
   async findOrCreateUser({ email: emailArg } = {}) {
     const email =
       this.context && this.context.user ? this.context.user.email : emailArg;
@@ -31,6 +34,7 @@ class UserAPI extends DataSource {
     return users && users[0] ? users[0] : null;
   }
 
+  // bookTrips({ launchIds }): Takes an object with an array of launchIds and books them for the logged-in user.
   async bookTrips({ launchIds }) {
     const userId = this.context.user.id;
     if (!userId) return;
@@ -55,21 +59,24 @@ class UserAPI extends DataSource {
     return res && res.length ? res[0].get() : false;
   }
 
+  // cancelTrip({ launchId }): Takes an object with a launchId and cancels that launch for the logged-in user.
   async cancelTrip({ launchId }) {
     const userId = this.context.user.id;
     return !!this.store.trips.destroy({ where: { userId, launchId } });
   }
 
+  // getLaunchIdsByUser(): Returns all booked trips for the logged-in user.
   async getLaunchIdsByUser() {
     const userId = this.context.user.id;
     const found = await this.store.trips.findAll({
       where: { userId },
     });
     return found && found.length
-      ? found.map(l => l.dataValues.launchId).filter(l => !!l)
+      ? found.map((l) => l.dataValues.launchId).filter((l) => !!l)
       : [];
   }
 
+  // isBookedOnLaunch({ launchId }): Determines whether the logged-in user has booked a trip on a particular launch.
   async isBookedOnLaunch({ launchId }) {
     if (!this.context || !this.context.user) return false;
     const userId = this.context.user.id;
