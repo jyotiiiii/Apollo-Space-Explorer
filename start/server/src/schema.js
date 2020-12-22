@@ -42,7 +42,8 @@ const typeDefs = gql`
       """
       pageSize: Int
       """
-      If you add a cursor here, it will only return results _after_ this cursor
+      If you add a cursor here, it will only return
+      results _after_ this cursor
       """
       after: String
     ): LaunchConnection!

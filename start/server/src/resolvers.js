@@ -43,6 +43,59 @@ module.exports = {
       dataSources.launchAPI.getLaunchById({ launchId: id }),
     me: (_, __, { dataSources }) => dataSources.userAPI.findOrCreateUser(),
   },
+
+  Mutation: {
+    login: async (_, { email }, { dataSources }) => {
+      const user = await dataSources.userAPI.findOrCreateUser({ email });
+      if (user) {
+        user.token = Buffer.from(email).toString("base64");
+        return user;
+      }
+    },
+    /*
+    To match our schema, these two resolvers both return an object that conforms to the 
+    structure of the TripUpdateResponse type. This type's fields include a success indicator, 
+    a status message, and an array of launches that the mutation either booked or canceled.
+
+The bookTrips resolver needs to account for the possibility of a partial success, where some 
+launches are booked successfully and others fail. The code above indicates a partial success 
+in the message field.
+    */
+    bookTrips: async (_, { launchIds }, { dataSources }) => {
+      const results = await dataSources.userAPI.bookTrips({ launchIds });
+      const launches = await dataSources.launchAPI.getLaunchesByIds({
+        launchIds,
+      });
+
+      return {
+        success: results && results.length === launchIds.length,
+        message:
+          results.length === launchIds.length
+            ? "trips booked successfully"
+            : `the following launches couldn't be booked: ${launchIds.filter(
+                (id) => !results.includes(id)
+              )}`,
+        launches,
+      };
+    },
+    cancelTrip: async (_, { launchId }, { dataSources }) => {
+      const result = await dataSources.userAPI.cancelTrip({ launchId });
+
+      if (!result)
+        return {
+          success: false,
+          message: "failed to cancel trip",
+        };
+
+      const launch = await dataSources.launchAPI.getLaunchById({ launchId });
+      return {
+        success: true,
+        message: "trip cancelled",
+        launches: [launch],
+      };
+    },
+  },
+
   //   This resolver obtains a large or small patch from mission, which is the object returned by the default resolver for the parent field in our schema, Launch.mission.
   Mission: {
     // The default size is 'LARGE' if not provided
