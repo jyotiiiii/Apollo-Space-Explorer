@@ -34,6 +34,19 @@ class LaunchAPI extends RESTDataSource {
       },
     };
   }
+
+  //   The getLaunchById method takes a launch's flight number and returns the data for the associated launch.
+  async getLaunchById({ launchId }) {
+    const response = await this.get("launches", { flight_number: launchId });
+    return this.launchReducer(response[0]);
+  }
+
+  //   The getLaunchesByIds method returns the result of multiple calls to getLaunchById.
+  getLaunchesByIds({ launchIds }) {
+    return Promise.all(
+      launchIds.map((launchId) => this.getLaunchById({ launchId }))
+    );
+  }
 }
 
 module.exports = LaunchAPI;
